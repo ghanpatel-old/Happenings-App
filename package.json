@@ -2,6 +2,7 @@
   "name": "Happenings-App",
   "version": "0.0.1",
   "dependencies": {
-	"express": "2.2.0"
+	"mongoose": "2.x.x",
+	"express": "2.x.x"
   }
 }
