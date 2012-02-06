@@ -19,6 +19,10 @@ exports.list = function(req, res) {
   });
 }
 
+exports.blank = function(req, res) {
+	res.send("dummy data");
+}
+
 // first locates a thread by title, then locates the replies by thread ID.
 exports.show = (function(req, res) {
     Thread.findOne({title: req.params.title}, function(error, thread) {

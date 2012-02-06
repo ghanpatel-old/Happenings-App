@@ -17,6 +17,7 @@ var api = require('./controllers/api.js');
 app.post('/thread', api.post);
 app.get('/thread/:title.:format?', api.show);
 app.get('/thread', api.list);
+app.get('/', api.blank);
 
 app.listen(3000);
 console.log("Express server listening on port %d", app.address().port);
