@@ -19,6 +19,10 @@ exports.list = function(req, res) {
   });
 }
 
+exports.add = function(req, res) {
+    new Thread({title: req.params.title, author: req.params.author}).save();
+}
+
 exports.blank = function(req, res) {
 	res.send("dummy data from api.js");
 }
