@@ -14,11 +14,15 @@ app.configure(function(){
 });
 
 var api = require('./controllers/api.js');
+app.use(express.bodyParser());
+
 app.post('/thread', api.post);
 app.get('/thread/:title.:format?', api.show);
 app.get('/thread', api.list);
 
 app.get('/', api.blank);
+app.post('/', api.add);
+
 
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
