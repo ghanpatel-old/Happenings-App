@@ -18,9 +18,7 @@ app.post('/thread', api.post);
 app.get('/thread/:title.:format?', api.show);
 app.get('/thread', api.list);
 
-app.get('/', function(request, response) {
-  response.send('dummy data');
-});
+app.get('/', api.blank);
 
 var port = process.env.PORT || 3000;
 app.listen(port, function() {

@@ -20,7 +20,7 @@ exports.list = function(req, res) {
 }
 
 exports.blank = function(req, res) {
-	res.send("dummy data");
+	res.send("dummy data from api.js");
 }
 
 // first locates a thread by title, then locates the replies by thread ID.
