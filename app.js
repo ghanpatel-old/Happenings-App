@@ -4,7 +4,7 @@ var express = require('express');
 var mongoose = require('mongoose');
 var app = module.exports = express.createServer(express.logger());
 
-
+/*
 mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729959');
 
 app.configure(function(){
@@ -16,10 +16,13 @@ app.configure(function(){
 var api = require('./controllers/api.js');
 app.post('/thread', api.post);
 app.get('/thread/:title.:format?', api.show);
-app.get('/thread', api.list);
+app.get('/thread', api.list);*/
+
 app.get('/', function(request, response) {
   response.send('dummy data');
 });
 
-app.listen(3000);
-console.log("Express server listening on port %d", app.address().port);
+var port = process.env.PORT || 3000;
+app.listen(port, function() {
+  console.log("Listening on " + port);
+});
