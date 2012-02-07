@@ -2,10 +2,26 @@
 
 var express = require('express');
 var mongoose = require('mongoose');
-var app = module.exports = express.createServer(express.logger());
+var app = express.createServer(express.logger());
 
+var db = mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729959')
 
-mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729959');
+var Schema = mongoose.Schema,
+    ObjectId = Schema.ObjectId;
+
+UserSchema = new Schema({
+	'title': { type: String, index: true },
+	  'data': String,
+	  'tags': [String],
+	  'user_id': ObjectId
+	});
+
+var User = mongoose.model('user',UserSchema);
+
+var user = new User();
+
+user.title = "test title";
+user.save();
 
 app.configure(function(){
   app.use(express.bodyParser());

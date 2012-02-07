@@ -8,6 +8,13 @@
 
 var Thread = require('../models/thread.js');
 var Post = require('../models/post.js');
+var User = require('../models/user.js')
+
+/*
+var user = new User();
+user.title = "test title";
+user.save();
+*/
 
 exports.post = function(req, res) {
     new Thread({title: req.body.title, author: req.body.author}).save();
@@ -24,7 +31,24 @@ exports.add = function(req, res) {
 }
 
 exports.blank = function(req, res) {
-	res.send("dummy data from api.js");
+	
+	var JSONuserList = {key:"element"};
+	
+	var allUsers = User.find({}, function (err, docs) {
+	  // docs.forEach
+	  if(err) {
+		console.log("Error at User.find()");
+	  }
+	  else{
+	  	//docs.forEach(function(elements){});
+		console.log("API -- convert docs array to JSON");
+		docs.forEach(function(element, index, array){
+			console.log("a[" + index + "] = "+element);
+			//JSONuserList.put("JSON", element);
+	  	});
+	  }
+	});
+	res.send("Got it");
 }
 
 // first locates a thread by title, then locates the replies by thread ID.
