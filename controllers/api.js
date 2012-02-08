@@ -5,50 +5,59 @@
    * show - Displays a thread and its posts
 */
 
-
 var Thread = require('../models/thread.js');
 var Post = require('../models/post.js');
 var User = require('../models/user.js')
-
-/*
-var user = new User();
-user.title = "test title";
-user.save();
-*/
 
 exports.post = function(req, res) {
     new Thread({title: req.body.title, author: req.body.author}).save();
 }
 
 exports.list = function(req, res) {
-  Thread.find(function(err, threads) {
-    res.send(threads);
+  User.find(function(err, docs) {
+    res.send(docs);
   });
 }
 
 exports.add = function(req, res) {
-    new Thread({title: req.params.title, author: req.params.author}).save();
+    new User({title: req.params.title, author: req.params.author}).save();
 }
 
-exports.blank = function(req, res) {
-	
-	var JSONuserList = {key:"element"};
-	
-	var allUsers = User.find({}, function (err, docs) {
-	  // docs.forEach
-	  if(err) {
-		console.log("Error at User.find()");
-	  }
-	  else{
-	  	//docs.forEach(function(elements){});
-		console.log("API -- convert docs array to JSON");
-		docs.forEach(function(element, index, array){
-			console.log("a[" + index + "] = "+element);
-			//JSONuserList.put("JSON", element);
-	  	});
-	  }
+exports.userId = function(req, res) {
+	title = req.params.title;
+	var JSONuserList = {elements:[]};
+	User.find({'title':title}, function(err, docs){
+		if(!err){
+			docs.forEach(function(element, index, array){
+				JSONuserList.elements[index] = element;
+			});
+		}
+		res.send(JSONuserList);	
 	});
-	res.send("Got it");
+	
+}
+
+exports.usersAll = function(req, res) {
+	
+	var sendData;
+	var JSONuserList = {elements:[]};
+	
+	User.find(function (err, docs) {
+		// docs.forEach
+		if(!err) {
+			docs.forEach(function(element, index, array){
+				JSONuserList.elements[index] = element;
+			});
+		}
+		console.log(JSONuserList);
+		sendData = JSONuserList;
+		res.send(sendData);
+	});
+	
+}
+
+exports.blank = function(req,res){
+	res.send("<p>Hi!</p>");
 }
 
 // first locates a thread by title, then locates the replies by thread ID.

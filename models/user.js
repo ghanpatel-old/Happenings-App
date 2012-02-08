@@ -4,6 +4,7 @@ var mongoose = require('mongoose')
 
 var UserSchema = new Schema({
 	'title': { type: String, index: true },
+	  'content': String,
 	  'data': String,
 	  'tags': [String],
 	  'user_id': ObjectId
