@@ -22,8 +22,8 @@ app.post('/thread', api.post);
 app.get('/thread/:title.:format?', api.show);
 app.get('/thread', api.list);
 
-app.get('/user', api.usersAll);
-app.get('/user/:title', api.userId);
+app.get('/user/get.json', api.usersAll);
+app.get('/user/:title/get.json', api.userId);
 
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
