@@ -56,9 +56,8 @@ exports.usersAll = function(req, res) {
 }
 
 exports.test = function(req,res){
-	var JSONuserList = 
-	{
-	}
+	var JSONuserList = {'elements': 'test' };
+	res.send(JSONuserList);
 }
 
 exports.blank = function(req,res){

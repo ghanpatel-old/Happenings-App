@@ -22,7 +22,7 @@ app.post('/thread', api.post);
 app.get('/thread/:title.:format?', api.show);
 app.get('/thread', api.list);
 
-app.get('/user/get.json', api.usersAll);
+app.get('/user/get.json', api.test);
 app.get('/user/:title/get.json', api.userId);
 
 var port = process.env.PORT || 3000;
