@@ -40,7 +40,7 @@ exports.userId = function(req, res) {
 exports.usersAll = function(req, res) {
 	
 	var sendData;
-	var JSONuserList = {elements:[]};
+	var JSONuserList = {'elements':[]};
 	
 	User.find(function (err, docs) {
 		// docs.forEach
@@ -52,8 +52,13 @@ exports.usersAll = function(req, res) {
 		console.log(JSONuserList);
 		sendData = JSONuserList;
 		res.send(sendData);
-	});
-	
+	});	
+}
+
+exports.test = function(req,res){
+	var JSONuserList = 
+	{
+	}
 }
 
 exports.blank = function(req,res){
