@@ -11,7 +11,14 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
+  app.use(express.static(__dirname + '/public'));
+
 });
+
+app.configure('production', function() {
+  app.use(express.errorHandler());
+});
+
 
 var api = require('./controllers/api.js');
 
@@ -22,7 +29,7 @@ app.post('/thread', api.post);
 app.get('/thread/:title.:format?', api.show);
 app.get('/thread', api.list);
 
-app.get('/user/get.json', api.test);
+app.get('/user/get.json', api.usersAll);
 app.get('/user/:title/get.json', api.userId);
 
 var port = process.env.PORT || 3000;

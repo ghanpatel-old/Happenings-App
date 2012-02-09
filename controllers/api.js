@@ -50,14 +50,20 @@ exports.usersAll = function(req, res) {
 			});
 		}
 		console.log(JSONuserList);
-		sendData = JSONuserList;
-		res.send(sendData);
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end("__parseJSONPResponse(" + JSON.stringify(JSONuserList) + ");");
 	});	
 }
 
 exports.test = function(req,res){
-	var JSONuserList = {'elements': 'test' };
-	res.send(JSONuserList);
+	var callback = req.params.callback;
+	var JSONuserList = {"elements": [
+	{"age":"29","fname":"Ghan","lname":"Patel","tags":["indian","brooklyn","male"]},
+	{"age":"30","fname":"Christian","lname":"Eckels","tags":["white","Jersey City"]},
+	{"age":29,"fname":"Jenni","lname":"Bowman","tags":["white","brooklyn"]}
+	] };
+	res.writeHead(200, {'Content-Type': 'application/javascript'});
+	  res.end("__parseJSONPResponse(" + JSON.stringify(JSONuserList) + ");");
 }
 
 exports.blank = function(req,res){
