@@ -35,6 +35,19 @@ exports.eventsAll = function(req,res){
 	});
 }
 
+//get('/event/:id')
+
+exports.getEvent = function(req,res){
+	var JSONuserList = {};
+	Event.findOne({_id: req.params.id}, function(err, doc){
+		JSONuserList = doc;
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(JSONuserList));
+	});
+}
+
+
+
 exports.fillData = function(req,res) {
 	//runOnce.fillData();
 
