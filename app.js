@@ -23,7 +23,7 @@ var api = require('./controllers/api.js');
 	app.get('/', api.blank);
 	app.post('/', api.add);
 
-	app.get('/event/get.json', api.eventsAll);
+	app.get('/event/', api.eventsAll);
 	app.get('/event/:id/get.json', api.getEvent);
 	app.post('/event/:id', api.setEventTag)
 
