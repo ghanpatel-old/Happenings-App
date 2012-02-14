@@ -19,18 +19,18 @@ app.configure('production', function() {
   app.use(express.errorHandler());
 });
 
-
 var api = require('./controllers/api.js');
+	app.get('/', api.blank);
+	app.post('/', api.add);
 
-app.get('/', api.blank);
-app.post('/', api.add);
+	app.get('/event/get.json', api.eventsAll);
+	app.get('/event/:id/get.json', api.getEvent);
+	app.post('/event/:id', api.setEventTag)
 
-app.post('/thread', api.post);
-app.get('/thread/:title.:format?', api.show);
-app.get('/thread', api.list);
-
-app.get('/user/get.json', api.usersAll);
-app.get('/user/:title/get.json', api.userId);
+	app.get('/user/get.json', api.usersAll);
+	app.get('/user/:name/get.json', api.getUser);
+	
+	app.get('/fillData', api.fillData);
 
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
