@@ -25,7 +25,7 @@ var api = require('./controllers/api.js');
 
 	app.get('/event/', api.eventsAll);
 	app.get('/event/:id/', api.getEvent);
-//	app.post('/event/:id/', api.setEventTag);
+ 	app.post('/event/:id/', api.setEventTag);
 	
 	app.get('/fillData', api.fillData);
 

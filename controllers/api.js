@@ -46,7 +46,27 @@ exports.getEvent = function(req,res){
 	});
 }
 
+//post('/event/:id?=:tag')
+exports.setEventTag = function(req,res){
+	Event.findById(req.params.id, function(err, p) {
+	  if (!p)
+	    return next(new Error('Could not load Document'));
+	  else {
+		Event.update({ _id : req.params.id},{ $addToSet : { tags : req.body.tag }}, function(name) {
+		    //what happens when this is successful?
+			res.end("success");
+		});
+	    p.modified = new Date();
 
+	    p.save(function(err) {
+	      if (err)
+	        console.log('error')
+	      else
+	        console.log('success')
+	    });
+	  }
+	});
+}
 
 exports.fillData = function(req,res) {
 	//runOnce.fillData();
