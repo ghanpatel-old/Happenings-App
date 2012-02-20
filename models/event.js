@@ -24,6 +24,7 @@ var Event = new Schema({
 	name			: String, 
 	genre			: String,
 	venueId			: [ObjectId],
+	date			: Date,
 	description		: String,
 	ratings			: [Ratings],
 	ticketURL		: String,
@@ -33,6 +34,7 @@ var Event = new Schema({
 	photos			: [Photo],
 	comments		: [Comments],
 	tags			: [String],
+	rush			: Boolean,
 	modified		: { type: Date, default: Date.now }
 });
 
