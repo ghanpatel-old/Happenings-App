@@ -4,13 +4,15 @@ var Schema			= mongoose.Schema;
 var ObjectId		= Schema.ObjectId;
 
 var User = new Schema({
-	mail			: {type : String, index : true, unique : true, required : true, safe : true},
+	_id				: ObjectId,
+	mail			: String,
 	fname 			: String,
 	lname			: String, 
+	phone			: String,
 	pic		 		: String, //url
 	created_at		: {type : Date, default : Date.now}
 });
-
+/*
 User.path("fname").set(function(v){
 	return v.capitalize();
 });
@@ -24,6 +26,6 @@ String.prototype.capitalize = function(){
         return a.charAt(0).toUpperCase() + a.substr(1).toLowerCase();
     });
 };
-
+*/
 //exports.User = User;
 module.exports = mongoose.model('user', User);

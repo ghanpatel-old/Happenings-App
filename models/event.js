@@ -35,6 +35,7 @@ var Event = new Schema({
 	comments		: [Comments],
 	tags			: [String],
 	rush			: Boolean,
+	rushList		: [String],
 	modified		: { type: Date, default: Date.now }
 });
 

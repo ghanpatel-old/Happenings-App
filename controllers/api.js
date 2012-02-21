@@ -6,7 +6,7 @@
 */
 
 var Event = require('../models/event.js');
-//var User = require('../models/user.js');
+var User = require('../models/user.js');
 
 // get('/')
 exports.blank = function(req,res){
@@ -70,43 +70,66 @@ exports.setEventTag = function(req,res){
 
 exports.smsFeed = function(req,res) {
 	
-	dateObj = new Date();
-	todaysDate = dateObj.getDate();
+	var feed = {
+		events : [],
+		users  : []
+	};
+	var users = [];
+	
+	//add date filter
 	
 	//find all records where boolean = 1 and date = today
-	Event.find({ rush: true , date: todaysDate }, function (err, docs) {
-	  	res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(docs));
-	});
 	
+	Event.find({ rush: true }, function (err, events) {
+		if(err){
+			console.log('error');
+		}
+		feed.events = events;
+	  	
+		User.find({phone : { $exists : true }}, function (err, userList) {
+			if(err){
+				console.log('error');
+			}
+		  	feed.users = userList;
+		
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.end(JSON.stringify(feed));
+		});
+	});
 }
 
 exports.fillData = function(req,res) {
 	//runOnce.fillData();
-	
-	dateObj = new Date();
-	todaysDate = dateObj.getDate();
 
+	theDate = new Date();
+
+/*
 	new Event({
-		name			: 'Jazz Event (test)', 
+		name			: 'Performance Event (test for SMS)', 
 		genre			: 'jazz',
 		description		: 'Jazz event',
 		ticketURL		: 'http://bam.org/',
 		URL				: 'http://bam.org',
-		date			: todaysDate,
+		date			: theDate,
 		rush			: true
 	}).save();
+*/
+
+	new User({
+		mail			: "test3@test.com",
+		fname 			: "Candy",
+		lname			: "Cartwright", 
+		phone			: "6104202642"
+		}).save();
 	
-	dateObj = dateObj.setDate(1);
-	theDate = dateObj.getDate();
-	
+/*	
 	new Event({
 		name			: 'Dance Event (test)', 
 		genre			: 'dance',
 		description		: 'Dance event',
 		ticketURL		: 'http://bam.org/',
 		URL				: 'http://bam.org',
-		date			: theDate,
+		date			: Date.now,
 		rush			: true
 	}).save();
 	
@@ -116,39 +139,9 @@ exports.fillData = function(req,res) {
 		description		: 'Second dance event',
 		ticketURL		: 'http://bam.org/',
 		URL				: 'http://bam.org',
-		date			: todaysDate,
+		date			: Date.now,
 		rush			: true
 	}).save();
-
-	new Event({
-		name			: 'Jazz Event (test)', 
-		genre			: 'jazz',
-		description		: 'Jazz event',
-		ticketURL		: 'http://bam.org/',
-		URL				: 'http://bam.org',
-		date			: theDate,
-		rush			: true
-	}).save();
-	
-	new Event({
-		name			: 'Dance Event (test)', 
-		genre			: 'dance',
-		description		: 'Dance event',
-		ticketURL		: 'http://bam.org/',
-		URL				: 'http://bam.org',
-		date			: theDate,
-		rush			: false
-	}).save();
-	
-	new Event({
-		name			: 'Dance Event 2 (test)', 
-		genre			: 'dance',
-		description		: 'Second dance event',
-		ticketURL		: 'http://bam.org/',
-		URL				: 'http://bam.org',
-		date			: todaysDate,
-		rush			: false
-	}).save();
-	
+*/
 	res.end("Success");
 }
