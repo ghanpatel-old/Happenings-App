@@ -170,7 +170,7 @@ exports.smsFeed = function(req,res) {
 	});
 }
 
-
+/*
 exports.fillData = function(req,res) {
 	//get JSON data from WNET
 	//var url = "http://173.203.29.228:8227/fo.php/iphone/wnetfeed";
@@ -233,3 +233,4 @@ function doFindOne(events, i) {
 	res.end("Running in background.");
 
 }
+*/
