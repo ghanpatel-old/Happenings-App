@@ -9,7 +9,7 @@ var Event = require('../models/event.js');
 var User = require('../models/user.js');
 var Wnet = require('../models/wnet.js');
 
-var request = require('request');
+//var request = require('request');
 
 // get('/')
 exports.blank = function(req,res){
