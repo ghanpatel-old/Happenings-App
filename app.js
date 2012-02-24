@@ -5,7 +5,7 @@ var mongoose = require('mongoose');
 var app = express.createServer(express.logger());
 app.use(express.bodyParser());
 
-var db = mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729959')
+var db = mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729959');
 
 app.configure(function(){
   app.use(express.bodyParser());
@@ -23,12 +23,15 @@ var api = require('./controllers/api.js');
 	app.get('/', api.blank);
 	app.post('/', api.add);
 
+	app.post('/login/', api.checkLogin);
+	app.post('/register/', api.registerNewUser);
+
 	app.get('/event/', api.eventsAll);
 	app.get('/event/:id/', api.getEvent);
  	app.post('/event/:id/', api.setEventTag);
 
 	app.get('/sms-feed/', api.smsFeed);
-	
+
 	app.get('/fillData', api.fillData);
 
 var port = process.env.PORT || 3000;

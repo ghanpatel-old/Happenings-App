@@ -7,16 +7,89 @@
 
 var Event = require('../models/event.js');
 var User = require('../models/user.js');
+var Wnet = require('../models/wnet.js');
+
+var request = require('request');
 
 // get('/')
 exports.blank = function(req,res){
+	//res.render('/app/views/index.html');
 	res.send("<p>Hi!</p>");
 }
-
 
 //post('/')
 exports.add = function(req, res) {
 //    new User({title: req.params.title, author: req.params.author}).save();
+}
+
+
+//post('/login/')
+exports.checkLogin = function(req,res){
+	var loginSet  = {
+		'already': false,
+		'info': {}
+		};
+
+	User.findOne({mail: req.body.email}, function(err, doc){
+		if (doc == null) {
+		    loginSet.already = false;
+			loginSet.info = { 'mail': req.body.email };
+			console.log(loginSet);
+		} else {
+			console.log(req.body.email + " found!" + " doc: " + doc);
+			loginSet.already = true;
+			loginSet.info = doc;
+		}
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(loginSet));
+	});
+}
+
+//post('/register/')
+exports.registerNewUser = function(req,res) {
+	console.log("inside function");
+	var fname = req.body.fname;
+	var lname = req.body.lname;
+	var email = req.body.email;
+	var phone = req.body.phone;
+	var submit = { "value" : "" };
+	
+	User.findOne({ 'mail': req.body.email }, function (err, docs) {
+		console.log(docs);
+		if(err){
+			//send "other"
+			submit.value = "other";
+			console.log("err on find()");
+		}
+		if(docs == null){
+			//create new record
+			console.log("creating new record");
+			var instance = new User();
+			instance.mail = req.body.email;
+			instance.fname = req.body.fname;
+			instance.lname = req.body.lname;
+			instance.phone = req.body.phone;
+			instance.save(function (err) {
+				if (!err) {
+					console.log('Success!');
+					submit.value = "success";
+				} else {
+					console.log('Save Failed.');
+					submit.value = "other";
+				}
+				console.log(submit);
+				res.writeHead(200, {'Content-Type': 'application/javascript'});
+				res.end(JSON.stringify(submit));
+			});
+		} else {
+		 	//send "redundant"	
+			submit.value = "redundant";
+			console.log("redundant");
+			console.log(submit);
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.end(JSON.stringify(submit));
+		}
+	});
 }
 
 //get('/event')
@@ -53,7 +126,6 @@ exports.setEventTag = function(req,res){
 	    return next(new Error('Could not load Document'));
 	  else {
 		Event.update({ _id : req.params.id},{ $addToSet : { tags : req.body.tag }}, function(name) {
-		    //what happens when this is successful?
 			res.end("success");
 		});
 	    p.modified = new Date();
@@ -98,50 +170,66 @@ exports.smsFeed = function(req,res) {
 	});
 }
 
+
 exports.fillData = function(req,res) {
-	//runOnce.fillData();
-
-	theDate = new Date();
-
-/*
-	new Event({
-		name			: 'Performance Event (test for SMS)', 
-		genre			: 'jazz',
-		description		: 'Jazz event',
-		ticketURL		: 'http://bam.org/',
-		URL				: 'http://bam.org',
-		date			: theDate,
-		rush			: true
-	}).save();
-*/
-
-	new User({
-		mail			: "test3@test.com",
-		fname 			: "Candy",
-		lname			: "Cartwright", 
-		phone			: "6104202642"
-		}).save();
+	//get JSON data from WNET
+	//var url = "http://173.203.29.228:8227/fo.php/iphone/wnetfeed";
 	
-/*	
-	new Event({
-		name			: 'Dance Event (test)', 
-		genre			: 'dance',
-		description		: 'Dance event',
-		ticketURL		: 'http://bam.org/',
-		URL				: 'http://bam.org',
-		date			: Date.now,
-		rush			: true
-	}).save();
+	request('http://173.203.29.228:8227/fo.php/iphone/wnetfeed', function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+		var jsonObj = JSON.parse(body);
+		//console.log(jsonObj.events[1].id);
+		for (var i = 0; i < jsonObj.events.length; i++) { 
+		    // add jsonObj.events[i] as a new record to table
+			//console.log(jsonObj.events[i].id);
+			doFindOne(jsonObj.events, i);
+			
+			
+		}
+	  }
+	});
+function doFindOne(events, i) {
+//	console.log(events[i].id);
+	Wnet.findOne({ 'id' : events[i].id }, function (err, doc){
+		if(doc == null){
+			//create new record
+			console.log("creating new record");
+			var instance = new Wnet();
+			instance.id = events[i].id;
+			instance.name = events[i].name;
+			instance.long_description = events[i].long_description;
+		 	instance.short_description = events[i].short_description;
+			instance.event_start_date = events[i].event_start_date;
+			instance.event_end_date = events[i].event_end_date;
+			instance.venue_id = events[i].venue_id;
+			instance.vname = events[i].vname;
+			instance.add1 = events[i].add1;
+			instance.add2 = events[i].add2;
+			instance.add3 = events[i].add3;
+			instance.add_loc = events[i].add_loc;
+			instance.city = events[i].city;
+			instance.state = events[i].state;
+			instance.zip = events[i].zip;
+			instance.lattitude = events[i].lattitude;
+			instance.longitude = events[i].longitude;
+			instance.phone = events[i].phone;
+			instance.locid = events[i].locid;
+			instance.orgid = events[i].orgid;
+			instance.adm = events[i].adm;
+			instance.save(function (err) {
+				if (!err) {
+					console.log('Success!');
+				} else {
+					console.log('Save Failed.');
+				}
+			});
+		} else {
+			console.log("redundant");
+		}
+	}); 
+}
 	
-	new Event({
-		name			: 'Dance Event 2 (test)', 
-		genre			: 'dance',
-		description		: 'Second dance event',
-		ticketURL		: 'http://bam.org/',
-		URL				: 'http://bam.org',
-		date			: Date.now,
-		rush			: true
-	}).save();
-*/
-	res.end("Success");
+	res.writeHead(200, {'Content-Type': 'application/javascript'});
+	res.end("Running in background.");
+
 }

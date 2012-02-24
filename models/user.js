@@ -4,8 +4,8 @@ var Schema			= mongoose.Schema;
 var ObjectId		= Schema.ObjectId;
 
 var User = new Schema({
-	_id				: ObjectId,
-	mail			: String,
+	//mail			: String,
+	mail			: { type: String, required: true, index: { unique: true } },
 	fname 			: String,
 	lname			: String, 
 	phone			: String,
