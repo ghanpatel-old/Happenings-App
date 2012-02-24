@@ -5,7 +5,8 @@
 	"mongoose": "2.x.x",
 	"express": "2.x.x",
 	"hooks": "0.1.9",
-	"mongodb": "0.9.7-3-5"
+	"mongodb": "0.9.7-3-5",
+    "request": "2.x.x"
   } ,
   "main": "./index.js"
 }

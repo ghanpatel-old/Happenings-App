@@ -9,7 +9,7 @@ var Event = require('../models/event.js');
 var User = require('../models/user.js');
 var Wnet = require('../models/wnet.js');
 
-//var request = require('request');
+var request = require('request');
 
 // get('/')
 exports.blank = function(req,res){
@@ -170,7 +170,7 @@ exports.smsFeed = function(req,res) {
 	});
 }
 
-/*
+
 exports.fillData = function(req,res) {
 	//get JSON data from WNET
 	//var url = "http://173.203.29.228:8227/fo.php/iphone/wnetfeed";
@@ -233,4 +233,3 @@ function doFindOne(events, i) {
 	res.end("Running in background.");
 
 }
-*/
