@@ -6,7 +6,8 @@
 	"express": "2.x.x",
 	"hooks": "0.1.9",
 	"mongodb": "0.9.7-3-5",
-    "request": "2.x.x"
+    "request": "2.x.x",
+    "sesh": "0.1.0"
   } ,
   "main": "./index.js"
 }

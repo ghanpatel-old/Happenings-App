@@ -4,8 +4,9 @@ var Schema			= mongoose.Schema;
 var ObjectId		= Schema.ObjectId;
 
 var User = new Schema({
-	//mail			: String,
-	mail			: { type: String, required: true, index: { unique: true } },
+	//fbtoken			: String,
+	fbtoken		: { type: String, required: true, index: { unique: true } },
+	mail			: String,
 	fname 			: String,
 	lname			: String, 
 	phone			: String,

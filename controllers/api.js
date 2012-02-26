@@ -24,6 +24,7 @@ exports.add = function(req, res) {
 
 
 //post('/login/')
+/*
 exports.checkLogin = function(req,res){
 	var loginSet  = {
 		'already': false,
@@ -43,6 +44,76 @@ exports.checkLogin = function(req,res){
 		res.writeHead(200, {'Content-Type': 'application/javascript'});
 		res.end(JSON.stringify(loginSet));
 	});
+}
+*/
+exports.setLogin = function (req,res) {
+		var submit = { "value" : "" };
+			
+		req.session.user = req.body.token;
+		
+		//find in user table, session.user
+		User.findOne({ 'fbtoken': req.session.user }, function (err, docs) {
+			console.log(docs);
+			if(err){
+				submit.value = "error";
+				console.log("err on find()");
+			}
+			if(docs == null){ //doesn't have it
+				console.log("creating new record");
+				var instance = new User();
+				instance.fbtoken = req.session.user;
+				instance.save(function (err) {
+					if (!err) {
+						console.log('Success!');
+						submit.value = "new";
+					} else {
+						console.log('Save Failed.');
+						submit.value = "error";
+					}
+					console.log(submit);
+					res.writeHead(200, {'Content-Type': 'application/javascript'});
+					res.end(JSON.stringify(submit));
+				});	
+			} else { //found record
+				submit.value = "already";
+				console.log(submit);
+				res.writeHead(200, {'Content-Type': 'application/javascript'});
+				res.end(JSON.stringify(submit));
+			}
+		});
+}
+
+//get(/login/)
+exports.sendLogin = function (req,res) {
+	var submit = {"token" : req.session.user};
+   	res.writeHead(200, {'Content-Type': 'application/javascript'});
+	res.end(JSON.stringify(submit));
+   }
+
+//post('/user/')
+exports.setUser = function(req,res){
+	var submit = { "value" : "" };
+	console.log("updating user with fbtoken " + req.session.user);
+	User.update({ fbtoken: req.session.user }, 
+	        	{$set: { 
+				fname:req.body.fname, 
+				lname:req.body.lname,
+				mail:req.body.email,
+				phone:req.body.phone		
+				}},
+		   		{ upsert: false },
+				function(err,numAffected){
+					if(err){
+						console.log(err + req.body.fname+req.body.lname+req.body.email+req.body.phone);
+						submit.value = "error";
+					}
+					if(numAffected > 0){
+						submit.value = "success";
+						console.log("Updated " + numAffected + "user records.");
+						res.writeHead(200, {'Content-Type': 'application/javascript'});
+						res.end(JSON.stringify(submit));						
+					}
+				});
 }
 
 //post('/register/')
@@ -225,6 +296,7 @@ function doFindOne(events, i) {
 			});
 		} else {
 			console.log("redundant");
+			//search within doc to confirm no entries have been updated
 		}
 	}); 
 }
