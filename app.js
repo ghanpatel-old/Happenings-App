@@ -5,7 +5,7 @@ var mongoose = require('mongoose');
 //var RedisStore = require('connect-redis')(express);
 var app = express.createServer(express.logger());
 
-var MemoryStore = require('connect/lib/middleware/session/memory');
+var MemoryStore = require('memory');
 var db = mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729959');
 
 app.configure(function(){
