@@ -167,11 +167,47 @@ exports.registerNewUser = function(req,res) {
 exports.eventsAll = function(req,res){
 	var JSONuserList = {'elements':[]};
 	
+	Wnet.find({id : {$gte : 17186 } }, function(err,docs){
+		if(!err) {
+			docs.forEach(function(element, index, array){
+				JSONuserList.elements[index] = element;
+			});
+		}
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(JSONuserList));
+	});
+	
+	
+	/*
 	Event.find(function (err, docs) {
 		// docs.forEach
 		if(!err) {
 			docs.forEach(function(element, index, array){
 				JSONuserList.elements[index] = element;
+			});
+		}
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(JSONuserList));
+	});
+	*/
+}
+
+//get('/updateData')
+exports.updateData = function(req,res){
+	var JSONuserList = {'elements':[]};
+	
+	//find all docs in WNET that have start date after jan 2012 and !enddate before April
+	Wnet.find({id : {$gte : 17186 } }, function(err,docs){
+		if(!err) {
+			docs.forEach(function(element, index, array){
+				//JSONuserList.elements[index] = element;
+				Event.findOne({ _id : docs.index }, function(error, event){
+					if(docs == null){
+						//add element to Event table
+						// regex --> /2012/
+					}
+				});
+				
 			});
 		}
 		res.writeHead(200, {'Content-Type': 'application/javascript'});
@@ -183,11 +219,21 @@ exports.eventsAll = function(req,res){
 
 exports.getEvent = function(req,res){
 	var JSONuserList = {};
+	
+	Wnet.findOne({_id:req.params.id}, function(err,doc){
+		JSONuserList = doc;
+		console.log(doc);
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(JSONuserList));
+	});
+	
+	/*
 	Event.findOne({_id: req.params.id}, function(err, doc){
 		JSONuserList = doc;
 		res.writeHead(200, {'Content-Type': 'application/javascript'});
 		res.end(JSON.stringify(JSONuserList));
 	});
+	*/
 }
 
 //post('/event/:id?=:tag')
@@ -208,6 +254,32 @@ exports.setEventTag = function(req,res){
 	        console.log('success')
 	    });
 	  }
+	});
+}
+
+//post('/fave/:id?=tag')
+exports.setFave = function(req,res) {
+	//add session.user's email to event's rushlist
+	var submit = { "value" : "" };
+	
+	User.findOne({ 'fbtoken': req.session.user }, function (err, doc) {
+		console.log(docs);
+		if(err){
+			submit.value = "error";
+			console.log("err on find()");
+		}
+		if(doc == null){ //doesn't have it
+			submit.value = "can't Find";
+			console.log(submit);
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.end(JSON.stringify(submit));	
+		} else { //found record
+			console.log = "found record"
+			var userEmail = doc.mail;
+			//find Event by req.params.id, add userEmail to rushList[] array
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.end(JSON.stringify(submit));
+		}
 	});
 }
 
@@ -259,6 +331,60 @@ exports.fillData = function(req,res) {
 		}
 	  }
 	});
+}
+	
+//app.get('/viewWNET');	
+exports.viewWNET = function(req,res) {
+	console.log('in function');
+	
+	var monthNames = [ "January", "February", "March", "April", "May", "June",
+	    "July", "August", "September", "October", "November", "December" ];
+	
+	var writeString = "<h1>Events in WNET Feed</h1><ul>";
+
+	var query = Wnet.find({});
+		query.sort('event_start_date', -1);
+		//query.limit(5);
+		query.exec(function (err, docs) {
+	 		if(!err) {	
+				console.log('found docs');
+				docs.forEach(function(element, index, array){
+					//print event_start_date to event_end_date
+					//print Name
+					//print vname
+					var target = new Date();
+					with(target)
+					  {
+					    //setMonth(getMonth());
+					    //setDate(1);
+					  }
+					//console.log(target);
+					var docStartDate = new Date(element.event_start_date);
+					var docEndDate = new Date(element.event_end_date);
+					
+					if(docEndDate.getMonth()){
+						var docEndDateAsString = monthNames[docEndDate.getMonth()] + " " + docEndDate.getDate() + ", " + docEndDate.getFullYear();
+						} else {
+							docEndDateAsString = "Ongoing"
+						}
+					
+					if (docEndDate > target || !element.event_end_date){
+						writeString = writeString + "<li>From: <strong>" + monthNames[docStartDate.getMonth()] + " " + docStartDate.getDate() + ", " + docStartDate.getFullYear() + "</strong> to " + docEndDateAsString + ". <br />" +
+								  "Event Name: " + element.name + ". <br />" + "Venue: " + element.vname + ". </li>"; 
+					}
+					//print city
+					//print short description
+					//print a href="/sendSMS/?event="+docs.id
+				});
+				res.writeHead(200, {'Content-Type': 'html'});
+				res.end(writeString + "</ul>");
+			} else {
+				console.log('error');
+			}
+		});
+}
+	
+/*
 function doFindOne(events, i) {
 //	console.log(events[i].id);
 	Wnet.findOne({ 'id' : events[i].id }, function (err, doc){
@@ -305,3 +431,4 @@ function doFindOne(events, i) {
 	res.end("Running in background.");
 
 }
+*/

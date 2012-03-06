@@ -32,17 +32,21 @@ var api = require('./controllers/api.js');
 	app.get('/login/', api.sendLogin);
 	app.post('/login/', api.setLogin);
 	
+	app.get('/user/', api.allusers);
 	app.post('/user/', api.setUser);
 	
-	//app.post('/register/', api.registerNewUser);
-
 	app.get('/event/', api.eventsAll);
 	app.get('/event/:id/', api.getEvent);
  	app.post('/event/:id/', api.setEventTag);
 
+	app.post('/updateData/', api.updateData);
+
+	app.post('/fave/:id/', api.setFave);
+
 	app.get('/sms-feed/', api.smsFeed);
 
 	app.get('/fillData', api.fillData);
+	app.get('/viewWNET/', api.viewWNET);
 
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
