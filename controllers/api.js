@@ -17,35 +17,8 @@ exports.blank = function(req,res){
 	res.send("<p>Hi!</p>");
 }
 
-//post('/')
-exports.add = function(req, res) {
-//    new User({title: req.params.title, author: req.params.author}).save();
-}
+// ======= USER LOGIN ======== //
 
-
-//post('/login/')
-/*
-exports.checkLogin = function(req,res){
-	var loginSet  = {
-		'already': false,
-		'info': {}
-		};
-
-	User.findOne({mail: req.body.email}, function(err, doc){
-		if (doc == null) {
-		    loginSet.already = false;
-			loginSet.info = { 'mail': req.body.email };
-			console.log(loginSet);
-		} else {
-			console.log(req.body.email + " found!" + " doc: " + doc);
-			loginSet.already = true;
-			loginSet.info = doc;
-		}
-		res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(loginSet));
-	});
-}
-*/
 exports.setLogin = function (req,res) {
 		var submit = { "value" : "" };
 			
@@ -163,6 +136,8 @@ exports.registerNewUser = function(req,res) {
 	});
 }
 
+// ===== EVENTS ===== //
+
 //get('/event')
 exports.eventsAll = function(req,res){
 	var JSONuserList = {'elements':[]};
@@ -176,45 +151,7 @@ exports.eventsAll = function(req,res){
 		res.writeHead(200, {'Content-Type': 'application/javascript'});
 		res.end(JSON.stringify(JSONuserList));
 	});
-	
-	
-	/*
-	Event.find(function (err, docs) {
-		// docs.forEach
-		if(!err) {
-			docs.forEach(function(element, index, array){
-				JSONuserList.elements[index] = element;
-			});
-		}
-		res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(JSONuserList));
-	});
-	*/
 }
-/*
-//get('/updateData')
-exports.updateData = function(req,res){
-	var JSONuserList = {'elements':[]};
-	
-	//find all docs in WNET that have start date after jan 2012 and !enddate before April
-	Wnet.find({id : {$gte : 17186 } }, function(err,docs){
-		if(!err) {
-			docs.forEach(function(element, index, array){
-				//JSONuserList.elements[index] = element;
-				Event.findOne({ _id : docs.index }, function(error, event){
-					if(docs == null){
-						//add element to Event table
-						// regex --> /2012/
-					}
-				});
-				
-			});
-		}
-		res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(JSONuserList));
-	});
-}
-*/
 
 //get('/event/:id')
 
@@ -262,11 +199,11 @@ exports.setEventTag = function(req,res){
 exports.setFave = function(req,res) {
 	//add session.user's email to event's rushlist
 	var submit = { "value" : "" };
+	var emailExists = false;
 	console.log(req.session.user);
 	console.log(req.params.id);
 	
 	User.findOne({ 'fbtoken': req.session.user }, function (err, doc) {
-		console.log(doc);
 		if(err){
 			submit.value = "error";
 			console.log("err on find()");
@@ -279,10 +216,38 @@ exports.setFave = function(req,res) {
 			var userEmail = doc.mail;
 			console.log(userEmail);
 			//find Event by req.params.id, add userEmail to rushList[] array
-			
+			Event.findOne({ '_id' : req.params.id }, function (err, doc){
+				console.log(req.params.id);
+				//if rushList[] doesn't contain userEmail, add it
+				if(doc.rushList){
+					doc.rushList.forEach(function(element, index, array){
+						if(element == userEmail){
+							//add it
+							emailExists = true;
+						}
+					});
+					if(!emailExists){
+						doc.rushList.push(userEmail);
+						doc.save();
+						submit.value = "added";
+						console.log("added user id:" + doc.id + " to rush list: " + doc.rushList);
+						console.log(doc.rushList);
+					} else {
+						submit.value = "already";
+						console.log("Already in there: " + doc.rushList);
+					}
+				} else {
+					doc.rushList[0] = userEmail;
+					doc.save();
+					submit.value = "added";
+					console.log("added user id:" + doc.id + " to rush list: " + doc.rushList);
+					console.log(doc.rushList);
+				}
+				console.log(submit);
+				res.writeHead(200, {'Content-Type': 'application/javascript'});
+				res.end(JSON.stringify(submit));
+			});
 		}
-		res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(submit));
 	});
 }
 
