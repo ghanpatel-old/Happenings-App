@@ -20,12 +20,17 @@ var Event = new Schema({
 
 
 var Event = new Schema({
-	_id				: ObjectId,
+	id				: { type: Number, required: true, index: { unique: true } },
 	name			: String, 
 	genre			: String,
-	venueId			: [ObjectId],
+	venueId			: String,
 	date			: Date,
-	description		: String,
+ 	long_description	: String,
+ 	short_description	: String,
+ 	event_start_date	: String,
+ 	event_end_date		: String,
+ 	orgid				: Number,
+ 	adm					: String,
 	ratings			: [Ratings],
 	ticketURL		: String,
 	URL				: String,

@@ -167,7 +167,7 @@ exports.registerNewUser = function(req,res) {
 exports.eventsAll = function(req,res){
 	var JSONuserList = {'elements':[]};
 	
-	Wnet.find({id : {$gte : 17186 } }, function(err,docs){
+	Event.find({id : {$gte : 17186 } }, function(err,docs){
 		if(!err) {
 			docs.forEach(function(element, index, array){
 				JSONuserList.elements[index] = element;
@@ -191,7 +191,7 @@ exports.eventsAll = function(req,res){
 	});
 	*/
 }
-
+/*
 //get('/updateData')
 exports.updateData = function(req,res){
 	var JSONuserList = {'elements':[]};
@@ -214,13 +214,14 @@ exports.updateData = function(req,res){
 		res.end(JSON.stringify(JSONuserList));
 	});
 }
+*/
 
 //get('/event/:id')
 
 exports.getEvent = function(req,res){
 	var JSONuserList = {};
 	
-	Wnet.findOne({_id:req.params.id}, function(err,doc){
+	Event.findOne({_id:req.params.id}, function(err,doc){
 		JSONuserList = doc;
 		console.log(doc);
 		res.writeHead(200, {'Content-Type': 'application/javascript'});
@@ -261,25 +262,27 @@ exports.setEventTag = function(req,res){
 exports.setFave = function(req,res) {
 	//add session.user's email to event's rushlist
 	var submit = { "value" : "" };
+	console.log(req.session.user);
+	console.log(req.params.id);
 	
 	User.findOne({ 'fbtoken': req.session.user }, function (err, doc) {
-		console.log(docs);
+		console.log(doc);
 		if(err){
 			submit.value = "error";
 			console.log("err on find()");
 		}
 		if(doc == null){ //doesn't have it
 			submit.value = "can't Find";
-			console.log(submit);
-			res.writeHead(200, {'Content-Type': 'application/javascript'});
-			res.end(JSON.stringify(submit));	
+			console.log(submit);	
 		} else { //found record
-			console.log = "found record"
+			console.log("found record");
 			var userEmail = doc.mail;
+			console.log(userEmail);
 			//find Event by req.params.id, add userEmail to rushList[] array
-			res.writeHead(200, {'Content-Type': 'application/javascript'});
-			res.end(JSON.stringify(submit));
+			
 		}
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(submit));
 	});
 }
 
@@ -313,28 +316,75 @@ exports.smsFeed = function(req,res) {
 	});
 }
 
+// ============= ADMIN and HELPER REQUESTS ============ //
 
 exports.fillData = function(req,res) {
 	//get JSON data from WNET
 	//var url = "http://173.203.29.228:8227/fo.php/iphone/wnetfeed";
-	
+	console.log("fillData launch");
 	request('http://173.203.29.228:8227/fo.php/iphone/wnetfeed', function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
 		var jsonObj = JSON.parse(body);
 		//console.log(jsonObj.events[1].id);
-		for (var i = 0; i < jsonObj.events.length; i++) { 
-		    // add jsonObj.events[i] as a new record to table
-			//console.log(jsonObj.events[i].id);
-			doFindOne(jsonObj.events, i);
-			
-			
-		}
+		jsonObj.events.forEach(function(element, index, array){
+				//print event_start_date to event_end_date
+				//print Name
+				//print vname
+				var target = new Date();
+				with(target)
+				  {
+				    //setMonth(getMonth());
+				    //setDate(1);
+				  }
+				//console.log(target);
+				var docStartDate = new Date(element.event_start_date);
+				var docEndDate = new Date(element.event_end_date);
+				
+				if (docEndDate > target){
+					console.log(element.id);
+					addToEvents(element);
+				}
+		});
 	  }
 	});
+	res.send("Running in Background");
+}
+
+
+
+function addToEvents(element) {
+//	console.log(events[i].id);
+	//add each event to Event record. Check whether exists first.
+	Event.findOne({ 'id' : element.id }, function (err, doc){
+		if(doc == null){
+			//create new record
+			console.log("creating new record for id " + element.id);
+			var instance = new Event();
+			instance.id = element.id;
+			instance.name = element.name;
+			instance.long_description = element.long_description;
+		 	instance.short_description = element.short_description;
+			instance.event_start_date = element.event_start_date;
+			instance.event_end_date = element.event_end_date;
+			instance.venueId = element.venue_id;
+			instance.orgid = element.orgid;
+			instance.adm = element.adm;
+			instance.save(function (err) {
+				if (!err) {
+					console.log('Success!');
+				} else {
+					console.log('Save Failed.');
+				}
+			});
+		} else {
+			console.log("redundant");
+			//search within doc to confirm no entries have been updated
+		}
+	}); 
 }
 	
-//app.get('/viewWNET');	
-exports.viewWNET = function(req,res) {
+//app.get('/viewEvents');	
+exports.viewEvents = function(req,res) {
 	console.log('in function');
 	
 	var monthNames = [ "January", "February", "March", "April", "May", "June",
@@ -342,7 +392,7 @@ exports.viewWNET = function(req,res) {
 	
 	var writeString = "<h1>Events in WNET Feed</h1><ul>";
 
-	var query = Wnet.find({});
+	var query = Event.find({});
 		query.sort('event_start_date', -1);
 		//query.limit(5);
 		query.exec(function (err, docs) {
@@ -368,10 +418,8 @@ exports.viewWNET = function(req,res) {
 							docEndDateAsString = "Ongoing"
 						}
 					
-					if (docEndDate > target || !element.event_end_date){
-						writeString = writeString + "<li>From: <strong>" + monthNames[docStartDate.getMonth()] + " " + docStartDate.getDate() + ", " + docStartDate.getFullYear() + "</strong> to " + docEndDateAsString + ". <br />" +
-								  "Event Name: " + element.name + ". <br />" + "Venue: " + element.vname + ". </li>"; 
-					}
+					writeString = writeString + "<li>From: <strong>" + monthNames[docStartDate.getMonth()] + " " + docStartDate.getDate() + ", " + docStartDate.getFullYear() + "</strong> to " + docEndDateAsString + ". <br />" +
+								  "Event Name: " + element.name + ". <br />" + ". </li>"; 
 					//print city
 					//print short description
 					//print a href="/sendSMS/?event="+docs.id
@@ -383,52 +431,40 @@ exports.viewWNET = function(req,res) {
 			}
 		});
 }
-	
-/*
-function doFindOne(events, i) {
-//	console.log(events[i].id);
-	Wnet.findOne({ 'id' : events[i].id }, function (err, doc){
-		if(doc == null){
-			//create new record
-			console.log("creating new record");
-			var instance = new Wnet();
-			instance.id = events[i].id;
-			instance.name = events[i].name;
-			instance.long_description = events[i].long_description;
-		 	instance.short_description = events[i].short_description;
-			instance.event_start_date = events[i].event_start_date;
-			instance.event_end_date = events[i].event_end_date;
-			instance.venue_id = events[i].venue_id;
-			instance.vname = events[i].vname;
-			instance.add1 = events[i].add1;
-			instance.add2 = events[i].add2;
-			instance.add3 = events[i].add3;
-			instance.add_loc = events[i].add_loc;
-			instance.city = events[i].city;
-			instance.state = events[i].state;
-			instance.zip = events[i].zip;
-			instance.lattitude = events[i].lattitude;
-			instance.longitude = events[i].longitude;
-			instance.phone = events[i].phone;
-			instance.locid = events[i].locid;
-			instance.orgid = events[i].orgid;
-			instance.adm = events[i].adm;
-			instance.save(function (err) {
-				if (!err) {
-					console.log('Success!');
-				} else {
-					console.log('Save Failed.');
-				}
-			});
-		} else {
-			console.log("redundant");
-			//search within doc to confirm no entries have been updated
-		}
-	}); 
-}
-	
-	res.writeHead(200, {'Content-Type': 'application/javascript'});
-	res.end("Running in background.");
 
+//app.get('/killData/')
+exports.killData = function(req,res){
+	//present an alert to confirm
+	
+	//remove all records from Wnet
+	Wnet.find({}, function(err,docs){
+		if (err){
+			console.log(err);
+		}
+	  	if (!docs || !Array.isArray(docs) || docs.length === 0){
+			console.log('no docs found');
+		} 
+		docs.forEach( function (doc) {
+			doc.remove();
+			console.log("doc removed");
+		});
+	});
+	
+	//remove all records from Event
+	Event.find({}, function(err,docs){
+		if (err){
+			console.log(err);
+		}
+	  	if (!docs || !Array.isArray(docs) || docs.length === 0){
+			console.log('no docs found');
+		} 
+		docs.forEach( function (doc) {
+			doc.remove();
+			console.log("doc removed");
+		});
+	});	
+	
+	res.send("Processing");
+	
 }
-*/
+
