@@ -149,6 +149,7 @@ exports.eventsAll = function(req,res){
 				JSONuserList.elements[index] = element;
 			});
 		}
+		console.log(JSONuserList);
 		res.writeHead(200, {'Content-Type': 'application/javascript'});
 		res.end(JSON.stringify(JSONuserList));
 	});
@@ -271,9 +272,9 @@ exports.setFave = function(req,res) {
 
 //app.post('/set-rush/', api.setRush);
 exports.setRush = function(req, res) {
-	console.log("setting rush for id: " + req.params.id);
+	console.log("setting rush for id: " + req.body.id);
 	var submit = { "value" : "" };
-	Event.findOne({ 'id' : req.params.id }, function (err, doc){
+	Event.findOne({ 'id' : req.body.id }, function (err, doc){
 		if(err){
 			submit.value = 'error';
 		}
@@ -283,10 +284,18 @@ exports.setRush = function(req, res) {
 			} else {
 				doc.rush = true;
 			}
-			submit.value = 'success';
+			doc.save(function (err) {
+				if (!err) {
+					console.log("rush set to:" + doc.rush);
+					submit.value = 'success';
+				} else {
+					console.log('Save Failed.');
+					submit.value = 'failed';
+				}
+				res.writeHead(200, {'Content-Type': 'application/javascript'});
+				res.end(JSON.stringify(submit));
+			});
 		}
-		res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(submit));
 	});
 }
 
@@ -361,6 +370,7 @@ exports.fillData = function(req,res) {
 							instance.venueId = element.venue_id;
 							instance.orgid = element.orgid;
 							instance.adm = element.adm;
+							instance.rush = false;
 							//instance.venueId = element.vname;
 							instance.save(function (err) {
 								if (!err) {

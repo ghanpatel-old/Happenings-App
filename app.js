@@ -42,7 +42,7 @@ var api = require('./controllers/api.js');
 	app.post('/fave/:id/', api.setFave);
 
 	app.get('/sms-feed/', api.smsFeed);
-	app.post('/set-rush/:id/', api.setRush);
+	app.post('/set-rush/', api.setRush);
 
 // === ADMIN and HELPER requests === //
 	app.get('/killData-DO-IT/', api.killData);
