@@ -8,6 +8,7 @@
 var Event = require('../models/event.js');
 var User = require('../models/user.js');
 var Wnet = require('../models/wnet.js');
+var Venue = require('../models/venue.js');
 
 var request = require('request');
 
@@ -138,11 +139,11 @@ exports.registerNewUser = function(req,res) {
 
 // ===== EVENTS ===== //
 
-//get('/event')
+//get('/event/')
 exports.eventsAll = function(req,res){
 	var JSONuserList = {'elements':[]};
 	
-	Event.find({id : {$gte : 17186 } }, function(err,docs){
+	Event.find({}, function(err,docs){
 		if(!err) {
 			docs.forEach(function(element, index, array){
 				JSONuserList.elements[index] = element;
@@ -156,13 +157,27 @@ exports.eventsAll = function(req,res){
 //get('/event/:id')
 
 exports.getEvent = function(req,res){
-	var JSONuserList = {};
+	var JSONevent = {'elements': '', 'sessuser': ''};
 	
-	Event.findOne({_id:req.params.id}, function(err,doc){
-		JSONuserList = doc;
-		console.log(doc);
-		res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(JSONuserList));
+	Event.findOne({id : req.params.id}, function(err,doc){
+		JSONevent.elements = doc;
+		
+		//add session user's email to the JSON feed. Used by Fave button.
+		User.findOne({ 'fbtoken': req.session.user }, function (err, sessuser) {
+			console.log(sessuser);
+			if(err){
+				submit.value = "error";
+				console.log("err on find()");
+			}
+			if(sessuser != null){ //found it
+				JSONevent.sessuser = sessuser.mail;
+				console.log(JSONevent.sessuser);
+			}
+			
+			console.log(JSONevent);
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.end(JSON.stringify(JSONevent));
+		});
 	});
 	
 	/*
@@ -180,7 +195,7 @@ exports.setEventTag = function(req,res){
 	  if (!p)
 	    return next(new Error('Could not load Document'));
 	  else {
-		Event.update({ _id : req.params.id},{ $addToSet : { tags : req.body.tag }}, function(name) {
+		Event.update({ id : req.params.id},{ $addToSet : { tags : req.body.tag }}, function(name) {
 			res.end("success");
 		});
 	    p.modified = new Date();
@@ -216,7 +231,7 @@ exports.setFave = function(req,res) {
 			var userEmail = doc.mail;
 			console.log(userEmail);
 			//find Event by req.params.id, add userEmail to rushList[] array
-			Event.findOne({ '_id' : req.params.id }, function (err, doc){
+			Event.findOne({ 'id' : req.params.id }, function (err, doc){
 				console.log(req.params.id);
 				//if rushList[] doesn't contain userEmail, add it
 				if(doc.rushList){
@@ -248,6 +263,30 @@ exports.setFave = function(req,res) {
 				res.end(JSON.stringify(submit));
 			});
 		}
+	});
+}
+
+// ============ SMS HANDLERS ============ //
+
+
+//app.post('/set-rush/', api.setRush);
+exports.setRush = function(req, res) {
+	console.log("setting rush for id: " + req.params.id);
+	var submit = { "value" : "" };
+	Event.findOne({ 'id' : req.params.id }, function (err, doc){
+		if(err){
+			submit.value = 'error';
+		}
+		if(doc != null){
+			if(doc.rush){
+				doc.rush = false;
+			} else {
+				doc.rush = true;
+			}
+			submit.value = 'success';
+		}
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(submit));
 	});
 }
 
@@ -305,47 +344,87 @@ exports.fillData = function(req,res) {
 				var docStartDate = new Date(element.event_start_date);
 				var docEndDate = new Date(element.event_end_date);
 				
+				//if end date is not in the past, add to Event table 
 				if (docEndDate > target){
 					console.log(element.id);
-					addToEvents(element);
-				}
+					Event.findOne({ 'id' : element.id }, function (err, doc){
+						if(doc == null){
+							//create new record
+							console.log("creating new event record for id " + element.id);
+							var instance = new Event();
+							instance.id = element.id;
+							instance.name = element.name;
+							instance.long_description = element.long_description;
+						 	instance.short_description = element.short_description;
+							instance.event_start_date = element.event_start_date;
+							instance.event_end_date = element.event_end_date;
+							instance.venueId = element.venue_id;
+							instance.orgid = element.orgid;
+							instance.adm = element.adm;
+							//instance.venueId = element.vname;
+							instance.save(function (err) {
+								if (!err) {
+									console.log('Success!');
+								} else {
+									console.log('Save Failed.');
+								}
+							});
+						} else {
+							console.log("event redundant");
+							//search within doc to confirm no entries have been updated
+						}
+					});
+				}				
 		});
 	  }
-	});
+	});	
+	//convert event.venueId from vname to _id
+	
 	res.send("Running in Background");
 }
 
+/*
+Venue.findOne({'name': element.vname}, function(err1,venDoc){
+	//If it isn't create a new record with the event's venue info
+	if(venDoc == null){
+		console.log('creating new venue record for ' + element.vname);
+		var instance = new Venue();
+		instance.name = element.vname;
+		instance.add1 =	element.add1;
+		instance.add2 = element.add2;
+		instance.add3 = element.add3;
+		instance.add_loc = element.add_loc;
+		instance.city = element.city;
+		instance.state = element.state;
+		instance.zip = element.zip;
+		instance.lattitude = element.lattitude;
+		instance.longitude = element.longitude;
+		instance.phone = element.phone;
+		instance.save(function (err) {
+			if (!err1) {
+				console.log('Success!');
+			} else {
+				console.log('Save Failed.');
+			}
+		});
+	} else {
+		console.log("venue redundant");
+		//search within doc to confirm no entries have been updated
+	}	
+});
+*/
+
+
+function addToVenue(element){
+	//check if element.vname is in Venue table. 
+	
+}
 
 
 function addToEvents(element) {
 //	console.log(events[i].id);
 	//add each event to Event record. Check whether exists first.
-	Event.findOne({ 'id' : element.id }, function (err, doc){
-		if(doc == null){
-			//create new record
-			console.log("creating new record for id " + element.id);
-			var instance = new Event();
-			instance.id = element.id;
-			instance.name = element.name;
-			instance.long_description = element.long_description;
-		 	instance.short_description = element.short_description;
-			instance.event_start_date = element.event_start_date;
-			instance.event_end_date = element.event_end_date;
-			instance.venueId = element.venue_id;
-			instance.orgid = element.orgid;
-			instance.adm = element.adm;
-			instance.save(function (err) {
-				if (!err) {
-					console.log('Success!');
-				} else {
-					console.log('Save Failed.');
-				}
-			});
-		} else {
-			console.log("redundant");
-			//search within doc to confirm no entries have been updated
-		}
-	}); 
+	
 }
 	
 //app.get('/viewEvents');	
@@ -416,6 +495,7 @@ exports.killData = function(req,res){
 	});
 	
 	//remove all records from Event
+	
 	Event.find({}, function(err,docs){
 		if (err){
 			console.log(err);
@@ -428,6 +508,23 @@ exports.killData = function(req,res){
 			console.log("doc removed");
 		});
 	});	
+	
+	
+	//remove all records from Venue
+	/*
+	Venue.find({}, function(err,docs){
+		if (err){
+			console.log(err);
+		}
+	  	if (!docs || !Array.isArray(docs) || docs.length === 0){
+			console.log('no docs found');
+		} 
+		docs.forEach( function (doc) {
+			doc.remove();
+			console.log("doc removed");
+		});
+	});
+	*/
 	
 	res.send("Processing");
 	

@@ -7,8 +7,17 @@ var Venue = new Schema({
 	_id				: ObjectId,
 	name			: String, 
 	description		: String,
+	add1			: String,
+	add2			: String,
+	add3			: String,
+	add_loc			: String,
+	city			: String,
+	state			: String,
+	zip				: String,
 	location		: String,
-	geo				: [String,String],
+	lattitude		: String,
+	longitude		: String,
+	phone			: String,
 	logoURL			: String,
 	imageURL		: String
 });
