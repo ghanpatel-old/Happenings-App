@@ -173,7 +173,7 @@ exports.getEvent = function(req,res){
 				console.log("err on find()");
 			}
 			if(sessuser != null){ //found it
-				JSONevent.sessuser = sessuser.mail;
+				JSONevent.sessuser = sessuser;
 				console.log(JSONevent.sessuser);
 			}
 			
@@ -213,9 +213,20 @@ exports.setEventTag = function(req,res){
 	});
 }
 
+function containsObject(obj, list) {
+    var i;
+    for (i = 0; i < list.length; i++) {
+        if (list[i] === obj) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 //post('/fave/:id?=tag')
 exports.setFave = function(req,res) {
-	//add session.user's email to event's rushlist
+	//add event id to user's rushlist
 	var submit = { "value" : "" };
 	var emailExists = false;
 	console.log(req.session.user);
@@ -230,10 +241,23 @@ exports.setFave = function(req,res) {
 			submit.value = "can't Find";
 			console.log(submit);	
 		} else { //found record
-			console.log("found record");
-			var userEmail = doc.mail;
-			console.log(userEmail);
+			console.log("found record, adding event id: " + req.params.id);
+			//check if id already exists in rushList array
+			if (containsObject(req.params.id,doc.rushList)){
+				submit.value = "already";
+				console.log(doc.mail + " already fave for "+ req.params.id);				
+			} else {
+				doc.rushList.push(req.params.id);
+				doc.save();
+				submit.value = "added";
+				console.log(doc.mail + " added to event "+ req.params.id);	
+			}
+			console.log(submit);
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.end(JSON.stringify(submit));
+			//console.log(userEmail);
 			//find Event by req.params.id, add userEmail to rushList[] array
+			/*
 			Event.findOne({ 'id' : req.params.id }, function (err, doc){
 				console.log(req.params.id);
 				//if rushList[] doesn't contain userEmail, add it
@@ -265,6 +289,7 @@ exports.setFave = function(req,res) {
 				res.writeHead(200, {'Content-Type': 'application/javascript'});
 				res.end(JSON.stringify(submit));
 			});
+			*/
 		}
 	});
 }
