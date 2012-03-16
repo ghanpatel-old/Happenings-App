@@ -9,6 +9,7 @@ var Event = require('../models/event.js');
 var User = require('../models/user.js');
 var Wnet = require('../models/wnet.js');
 var Venue = require('../models/venue.js');
+var Org = require('../models/organization.js');
 
 var request = require('request');
 var async = require('async');
@@ -333,124 +334,97 @@ exports.smsFeed = function(req,res) {
 
 // ============= ADMIN and HELPER REQUESTS ============ //
 
-exports.fillData = function(req,res) {
-	//get JSON data from WNET
-	//var url = "http://173.203.29.228:8227/fo.php/iphone/wnetfeed";
+exports.fillData = function() {
 	console.log("fillData launch");
 	request('http://173.203.29.228:8227/fo.php/iphone/wnetfeed', function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
 		var jsonObj = JSON.parse(body);
-		//console.log(jsonObj.events[1].id);
+	
+		//fill events
 		jsonObj.events.forEach(function(element, index, array){
-				//print event_start_date to event_end_date
-				//print Name
-				//print vname
-				var target = new Date();
-				with(target)
-				  {
-				    //setMonth(getMonth());
-				    //setDate(1);
-				  }
-				//console.log(target);
-				var docStartDate = new Date(element.event_start_date);
-				var docEndDate = new Date(element.event_end_date);
-				
-				//if end date is not in the past, add to Event table 
-				if (docEndDate > target){
-					console.log("Checking " + element.id);
-					Event.findOne({ 'id' : element.id }, function (err, doc){
-						if(err){
-							console.log("Error: " + err);
-						}
-						if(doc == null){
-							//create new record
-							console.log("creating new event record for id " + element.id);
-							var instance = new Event();
-							instance.id = element.id;
-							instance.name = element.name;
-							instance.long_description = element.long_description;
-						 	instance.short_description = element.short_description;
-							instance.event_start_date = element.event_start_date;
-							instance.event_end_date = element.event_end_date;
-							instance.venueId = element.venue_id;
-							instance.orgid = element.orgid;
-							instance.adm = element.adm;
-							instance.rush = false;
-							instance.venueId = element.vname;
-							instance.save(function (err) {
-								if (!err) {
-									console.log('Success!');
-								} else {
-									console.log('Save Failed.');
-								}
-							  });
-						} else {
-							console.log("event redundant");
-							//search within doc to confirm no entries have been updated
-						}
-					});
-				}				
+			var target = new Date();
+			var docStartDate = new Date(element.event_start_date);
+			var docEndDate = new Date(element.event_end_date);
+			
+			//if end date is not in the past, add to Event table 
+			if (docEndDate > target){
+				console.log("Checking event: " + element.id);
+				addToEvents(element);
+			}				
 		});
+	
+		//fill venue
+		jsonObj.venues.forEach(function(venueData, index, array){
+			console.log("checking venue: "+ venueData.venue_id);
+			addToVenue(venueData);
+		});
+		
+		//fill orgs
+		jsonObj.organizations.forEach(function(element, index, array){
+			console.log("checking organization: "+ element.org_id);
+			addToOrg(element);
+		});
+		
+		//wait 20 seconds, give timer...
+		var date = new Date();
+		var curDate = null;
+
+		do { 
+			curDate = new Date(); 
+			console.log(curDate-date);
+		} 
+		while(curDate-date < 10000);
+		
+		//fill category info
+		
 	  }
-	});	
-	//convert event.venueId from vname to _id
+	});
 }
 
-exports.fillData1 = function(req,res) {
-	console.log("fillData launch");
-	request('http://173.203.29.228:8227/fo.php/iphone/wnetfeed', function (error, response, body) {
-	  if (!error && response.statusCode == 200) {
-		var jsonObj = JSON.parse(body);
-		jsonObj.events.forEach(function(element, index, array){
-				var target = new Date();
-				var docStartDate = new Date(element.event_start_date);
-				var docEndDate = new Date(element.event_end_date);
-				if (docEndDate > target){
-					console.log("Checking " + element.id);
-					Event.findOne({ 'id' : element.id }, function (err, doc){
-						if(err){
-							console.log("Error: " + err);
-						}
-						if(doc == null){
-							//create new record
-							console.log("creating new event record for id " + element.id);
-							var instance = new Event();
-							instance.id = element.id;
-							instance.name = element.name;
-							instance.long_description = element.long_description;
-						 	instance.short_description = element.short_description;
-							instance.event_start_date = element.event_start_date;
-							instance.event_end_date = element.event_end_date;
-							instance.venueId = element.venue_id;
-							instance.orgid = element.orgid;
-							instance.adm = element.adm;
-							instance.rush = false;
-							instance.venueId = element.vname;
-							instance.save(function (err) {
-								if (!err) {
-									console.log('Success!');
-								} else {
-									console.log('Save Failed.');
-								}
-							  });
-						} else {
-							console.log("event redundant");
-							//search within doc to confirm no entries have been updated
-						}
-					});
+function addToEvents(element) {
+	Event.findOne({ 'id' : element.id.toString() }, function (err, doc){
+		if(err){
+			console.log("Error: " + err);
+		}
+		if(doc == null){
+			//create new record
+			console.log("creating new event record for id " + element.id);
+			var instance = new Event();
+			instance.id = element.id.toString();
+			instance.name = element.name.toString();
+			instance.long_description = element.long_description.toString();
+		 	instance.short_description = element.short_description.toString();
+			instance.event_start_date = element.event_start_date.toString();
+			instance.event_end_date = element.event_end_date.toString();
+			instance.venueId = element.venue_id.toString();
+			instance.vname = element.vname;
+			instance.orgid = element.orgid.toString();
+			instance.adm = element.adm.toString();
+			instance.rush = false;
+			instance.save(function (err) {
+				if (!err) {
+					console.log('Success!');
+				} else {
+					console.log('Save Failed.');
 				}
-			});				
+			  });
+		} else {
+			console.log("event redundant");
+			//search within doc to confirm no entries have been updated
 		}
 	});
 }
 
-
-
 function addToVenue(element){
-/*
-		function(){
+	console.log("checking venue table");
+	Venue.findOne({'venue_id': element.venue_id.toString()}, function(err,doc){
+	//If it isn't create a new record with the event's venue info
+		if(doc == null){
+			console.log('creating new venue record for ' + element.name);
 			var instance = new Venue();
-			instance.name = element.vname;
+			instance.venue_id = element.venue_id.toString();
+			instance.name = element.name;
+			instance.description = element.description;
 			instance.add1 =	element.add1;
 			instance.add2 = element.add2;
 			instance.add3 = element.add3;
@@ -461,34 +435,63 @@ function addToVenue(element){
 			instance.lattitude = element.lattitude;
 			instance.longitude = element.longitude;
 			instance.phone = element.phone;
-			console.log(instance.phone);
-		},
-		function(){
-			Venue.findOne({'name': element.vname}, function(err1,venDoc){
-				//If it isn't create a new record with the event's venue info
-				if(venDoc == null){
-					console.log('creating new venue record for ' + element.vname);
-					instance.save(function (err) {
-						if (!err1) {
-							console.log('Success!');
-						} else {
-							console.log('Save Failed.');
-						}
-					});
+			instance.org_id	= element.org_id + "";
+			instance.borough_id	= element.borough_id.toString();
+			instance.neighborhood_id = element.neighborhood_id.toString();
+			instance.neighborhood_name = element.neighborhood_name;
+			instance.borough_name = element.borough_name;
+			instance.save(function (err) {
+				if (!err) {
+					console.log('Success! Saved venue:' + instance.name);
 				} else {
-					console.log("venue redundant");
-					//search within doc to confirm no entries have been updated
-				}	
+					console.log('Save Failed.');
+				}
 			});
-		}
-*/
+		} else {
+			console.log("venue redundant");
+			//search within doc to confirm no entries have been updated
+		}	
+	});
 }
 
-
-function addToEvents(element) {
-//	console.log(events[i].id);
-	//add each event to Event record. Check whether exists first.
-
+function addToOrg(element){
+	console.log("checking venue table");
+	Org.findOne({'org_id': element.org_id.toString()}, function(err,doc){
+	//If it isn't create a new record with the event's venue info
+		if(doc == null){
+			console.log('creating new org record for ' + element.name);
+			var instance = new Org();
+			instance.org_id = element.org_id.toString();
+			instance.name = element.name;
+			instance.short_description = element.short_description;
+			instance.long_description = element.long_description;
+			instance.add1 =	element.add1;
+			instance.add2 = element.add2;
+			instance.add3 = element.add3;
+			instance.add_loc = element.add_loc;
+			instance.city = element.city;
+			instance.state = element.state;
+			instance.zip = element.zip;
+			instance.lattitude = element.lattitude;
+			instance.longitude = element.longitude;
+			instance.phone = element.phone;
+			instance.web = element.web;
+			instance.borough_id	= element.borough_id.toString();
+			instance.neighborhood_id = element.neighborhood_id.toString();
+			instance.neighborhood_name = element.neighborhood_name;
+			instance.borough_name = element.borough_name;
+			instance.save(function (err) {
+				if (!err) {
+					console.log('Success! Saved Organization:' + instance.name);
+				} else {
+					console.log('Save Failed.');
+				}
+			});
+		} else {
+			console.log("Org redundant");
+			//search within doc to confirm no entries have been updated
+		}	
+	});
 }
 	
 //app.get('/viewEvents');	

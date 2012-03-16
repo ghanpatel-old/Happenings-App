@@ -10,7 +10,8 @@ var User = new Schema({
 	fname 			: String,
 	lname			: String, 
 	phone			: String,
-	pic		 		: String, //url
+	pic		 		: String, 
+	rushList		: [String],
 	created_at		: {type : Date, default : Date.now}
 });
 /*

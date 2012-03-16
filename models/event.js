@@ -20,11 +20,11 @@ var Event = new Schema({
 
 
 var Event = new Schema({
-	id				: { type: Number, required: true, index: { unique: true } },
+	id				: { type: String, required: true, index: { unique: true } },
 	name			: String, 
 	genre			: String,
 	venueId			: String,
-	date			: Date,
+	vname			: String,
  	long_description	: String,
  	short_description	: String,
  	event_start_date	: String,
@@ -40,7 +40,7 @@ var Event = new Schema({
 	comments		: [Comments],
 	tags			: [String],
 	rush			: Boolean,
-	rushList		: [String],
+	cat_id			: String,
 	modified		: { type: Date, default: Date.now }
 });
 

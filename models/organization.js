@@ -3,10 +3,11 @@ var mongoose		= require("mongoose");
 var Schema			= mongoose.Schema;
 var ObjectId		= Schema.ObjectId;
 
-var Venue = new Schema({
-	venue_id		: String,
-	name			: { type: String, required: true, index: { unique: true } },
-	description		: String,
+var Org = new Schema({
+	org_id				: { type: String, required: true, index: { unique: true } },
+	name				: String,
+	short_description	: String,
+	long_description	: String,
 	add1			: String,
 	add2			: String,
 	add3			: String,
@@ -18,15 +19,15 @@ var Venue = new Schema({
 	lattitude		: String,
 	longitude		: String,
 	phone			: String,
+	web				: String,
+	borough_id		: String,
+	neighborhood_id	: String,
+	neighborhood_name: String,
+	borough_name	: String,  
 	logoURL			: String,
 	imageURL		: String,
-	org_id			: String,
-	borough_id		: String,
-	neighborhood_id : String, 
-	neighborhood_name: String,
-	borough_name	: String,
-	cat_id			: String
-	
+	cat_id 			: String
+
 });
 
-module.exports = mongoose.model('venue', Venue);
+module.exports = mongoose.model('org', Org);

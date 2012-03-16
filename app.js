@@ -46,8 +46,6 @@ var api = require('./controllers/api.js');
 	app.post('/set-rush/', api.setRush);
 
 // === ADMIN and HELPER requests === //
-	app.get('/killData-DO-IT/', api.killData);
-	app.get('/fillData/', api.fillData);
 	app.get('/viewEvents/', api.viewEvents);
 
 var port = process.env.PORT || 3000;
