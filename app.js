@@ -2,6 +2,7 @@
 
 var express = require('express');
 var mongoose = require('mongoose');
+
 //var RedisStore = require('connect-redis')(express);
 var app = express.createServer(express.logger());
 

@@ -1,0 +1,1 @@
+require("openurl").open("http://happenings-app.heroku.com/fillData");

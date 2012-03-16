@@ -11,6 +11,7 @@ var Wnet = require('../models/wnet.js');
 var Venue = require('../models/venue.js');
 
 var request = require('request');
+var async = require('async');
 
 // get('/')
 exports.blank = function(req,res){
@@ -149,7 +150,7 @@ exports.eventsAll = function(req,res){
 				JSONuserList.elements[index] = element;
 			});
 		}
-		console.log(JSONuserList);
+		console.log('sent events');
 		res.writeHead(200, {'Content-Type': 'application/javascript'});
 		res.end(JSON.stringify(JSONuserList));
 	});
@@ -273,10 +274,10 @@ exports.setFave = function(req,res) {
 //app.post('/set-rush/', api.setRush);
 exports.setRush = function(req, res) {
 	console.log("setting rush for id: " + req.body.id);
-	var submit = { "value" : "" };
+	var submit;
 	Event.findOne({ 'id' : req.body.id }, function (err, doc){
 		if(err){
-			submit.value = 'error';
+			submit = 'error';
 		}
 		if(doc != null){
 			if(doc.rush){
@@ -287,13 +288,14 @@ exports.setRush = function(req, res) {
 			doc.save(function (err) {
 				if (!err) {
 					console.log("rush set to:" + doc.rush);
-					submit.value = 'success';
+					submit = 'success';
 				} else {
 					console.log('Save Failed.');
-					submit.value = 'failed';
+					submit = 'failed';
 				}
-				res.writeHead(200, {'Content-Type': 'application/javascript'});
-				res.end(JSON.stringify(submit));
+				console.log(submit);
+				res.writeHead(200, {'Content-Type': 'text/plain'});
+				res.end(submit);
 			});
 		}
 	});
@@ -355,8 +357,11 @@ exports.fillData = function(req,res) {
 				
 				//if end date is not in the past, add to Event table 
 				if (docEndDate > target){
-					console.log(element.id);
+					console.log("Checking " + element.id);
 					Event.findOne({ 'id' : element.id }, function (err, doc){
+						if(err){
+							console.log("Error: " + err);
+						}
 						if(doc == null){
 							//create new record
 							console.log("creating new event record for id " + element.id);
@@ -371,14 +376,14 @@ exports.fillData = function(req,res) {
 							instance.orgid = element.orgid;
 							instance.adm = element.adm;
 							instance.rush = false;
-							//instance.venueId = element.vname;
+							instance.venueId = element.vname;
 							instance.save(function (err) {
 								if (!err) {
 									console.log('Success!');
 								} else {
 									console.log('Save Failed.');
 								}
-							});
+							  });
 						} else {
 							console.log("event redundant");
 							//search within doc to confirm no entries have been updated
@@ -389,52 +394,101 @@ exports.fillData = function(req,res) {
 	  }
 	});	
 	//convert event.venueId from vname to _id
-	
-	res.send("Running in Background");
 }
 
-/*
-Venue.findOne({'name': element.vname}, function(err1,venDoc){
-	//If it isn't create a new record with the event's venue info
-	if(venDoc == null){
-		console.log('creating new venue record for ' + element.vname);
-		var instance = new Venue();
-		instance.name = element.vname;
-		instance.add1 =	element.add1;
-		instance.add2 = element.add2;
-		instance.add3 = element.add3;
-		instance.add_loc = element.add_loc;
-		instance.city = element.city;
-		instance.state = element.state;
-		instance.zip = element.zip;
-		instance.lattitude = element.lattitude;
-		instance.longitude = element.longitude;
-		instance.phone = element.phone;
-		instance.save(function (err) {
-			if (!err1) {
-				console.log('Success!');
-			} else {
-				console.log('Save Failed.');
-			}
-		});
-	} else {
-		console.log("venue redundant");
-		//search within doc to confirm no entries have been updated
-	}	
-});
-*/
+exports.fillData1 = function(req,res) {
+	console.log("fillData launch");
+	request('http://173.203.29.228:8227/fo.php/iphone/wnetfeed', function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+		var jsonObj = JSON.parse(body);
+		jsonObj.events.forEach(function(element, index, array){
+				var target = new Date();
+				var docStartDate = new Date(element.event_start_date);
+				var docEndDate = new Date(element.event_end_date);
+				if (docEndDate > target){
+					console.log("Checking " + element.id);
+					Event.findOne({ 'id' : element.id }, function (err, doc){
+						if(err){
+							console.log("Error: " + err);
+						}
+						if(doc == null){
+							//create new record
+							console.log("creating new event record for id " + element.id);
+							var instance = new Event();
+							instance.id = element.id;
+							instance.name = element.name;
+							instance.long_description = element.long_description;
+						 	instance.short_description = element.short_description;
+							instance.event_start_date = element.event_start_date;
+							instance.event_end_date = element.event_end_date;
+							instance.venueId = element.venue_id;
+							instance.orgid = element.orgid;
+							instance.adm = element.adm;
+							instance.rush = false;
+							instance.venueId = element.vname;
+							instance.save(function (err) {
+								if (!err) {
+									console.log('Success!');
+								} else {
+									console.log('Save Failed.');
+								}
+							  });
+						} else {
+							console.log("event redundant");
+							//search within doc to confirm no entries have been updated
+						}
+					});
+				}
+			});				
+		}
+	});
+}
+
 
 
 function addToVenue(element){
-	//check if element.vname is in Venue table. 
-	
+/*
+		function(){
+			var instance = new Venue();
+			instance.name = element.vname;
+			instance.add1 =	element.add1;
+			instance.add2 = element.add2;
+			instance.add3 = element.add3;
+			instance.add_loc = element.add_loc;
+			instance.city = element.city;
+			instance.state = element.state;
+			instance.zip = element.zip;
+			instance.lattitude = element.lattitude;
+			instance.longitude = element.longitude;
+			instance.phone = element.phone;
+			console.log(instance.phone);
+		},
+		function(){
+			Venue.findOne({'name': element.vname}, function(err1,venDoc){
+				//If it isn't create a new record with the event's venue info
+				if(venDoc == null){
+					console.log('creating new venue record for ' + element.vname);
+					instance.save(function (err) {
+						if (!err1) {
+							console.log('Success!');
+						} else {
+							console.log('Save Failed.');
+						}
+					});
+				} else {
+					console.log("venue redundant");
+					//search within doc to confirm no entries have been updated
+				}	
+			});
+		}
+*/
 }
 
 
 function addToEvents(element) {
 //	console.log(events[i].id);
 	//add each event to Event record. Check whether exists first.
-	
+
 }
 	
 //app.get('/viewEvents');	
