@@ -371,9 +371,9 @@ exports.fillData = function() {
 
 		do { 
 			curDate = new Date(); 
-			console.log(curDate-date);
+			//console.log(curDate-date);
 		} 
-		while(curDate-date < 10000);
+		while(curDate-date < 1000);
 		
 		//fill category info
 		
