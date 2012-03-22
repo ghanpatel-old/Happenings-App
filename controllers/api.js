@@ -10,6 +10,7 @@ var User = require('../models/user.js');
 var Wnet = require('../models/wnet.js');
 var Venue = require('../models/venue.js');
 var Org = require('../models/organization.js');
+var Category = require('../models/category.js');
 
 var request = require('request');
 var async = require('async');
@@ -620,5 +621,39 @@ exports.killData = function(req,res){
 	
 	res.send("Processing");
 	
+}
+
+
+exports.fillCategories = function() {
+	console.log("fillCategory launch");
+	request('http://173.203.29.228:8227/fo.php/iphone/categoryDump', function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+		var jsonObj = JSON.parse(body);
+	
+		//fill events
+		jsonObj.forEach(function(element, index, array){
+			console.log("id: " + element.id);
+			var instance = new Category();
+			instance.id = element.id.toString();
+
+/*			instance.name = element.name;
+			instance.description = element.description;
+		 	instance.for_orgs = element.for_orgs;
+			instance.for_venues = element.for_venues;
+			instance.for_events = element.for_events;
+			instance.is_featured = element.is_featured;
+			instance.parent_category_id = element.parent_category_id;
+*/
+			console.log("about to save id " + instance.id);
+			instance.save(function (err) {
+				if (!err) {
+					console.log('Success!');
+				} else {
+					console.log('Save Failed.');
+				}
+			  });		
+		});
+	  }
+	});
 }
 

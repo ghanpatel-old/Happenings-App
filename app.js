@@ -47,6 +47,7 @@ var api = require('./controllers/api.js');
 
 // === ADMIN and HELPER requests === //
 	app.get('/viewEvents/', api.viewEvents);
+	app.get('/fillCategories', api.fillCategories);
 
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
