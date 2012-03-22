@@ -6,3 +6,15 @@ var db = mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729
 var api = require('./controllers/api.js');
 
 api.fillData();
+
+//wait 20 seconds, give timer...
+var date = new Date();
+var curDate = null;
+
+do { 
+	curDate = new Date(); 
+	//console.log(curDate-date);
+} 
+while(curDate-date < 5000);
+
+mongoose.disconnect();
