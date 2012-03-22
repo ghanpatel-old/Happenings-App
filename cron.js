@@ -7,14 +7,18 @@ var api = require('./controllers/api.js');
 
 api.fillData();
 
-//wait 20 seconds, give timer...
-var date = new Date();
-var curDate = null;
+var disconnect = function(){
+	//wait 20 seconds, give timer...
+	var date = new Date();
+	var curDate = null;
 
-do { 
-	curDate = new Date(); 
-	//console.log(curDate-date);
-} 
-while(curDate-date < 5000);
+	do { 
+		curDate = new Date(); 
+		console.log(curDate-date);
+	} 
+	while(curDate-date < 10000);
 
-mongoose.disconnect();
+	//db.disconnect();
+}
+
+//disconnect();
