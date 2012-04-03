@@ -40,6 +40,10 @@ var api = require('./controllers/api.js');
 	app.get('/event/:id/', api.getEvent);
  	app.post('/event/:id/', api.setEventTag);
 
+	app.get('/venue/', api.venuesAll);
+	app.get('/venue/:id/', api.getVenue);
+/*	app.post('/venue/:id/', api.setVenueInfo); */
+
 	app.post('/fave/:id/', api.setFave);
 
 	app.get('/sms-feed/', api.smsFeed);

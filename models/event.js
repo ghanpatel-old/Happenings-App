@@ -29,6 +29,7 @@ var Event = new Schema({
  	short_description	: String,
  	event_start_date	: String,
  	event_end_date		: String,
+	event_time			: String,
  	orgid				: Number,
  	adm					: String,
 	ratings			: [Ratings],
@@ -41,6 +42,7 @@ var Event = new Schema({
 	tags			: [String],
 	rush			: Boolean,
 	cat_id			: String,
+	category		: String,
 	modified		: { type: Date, default: Date.now }
 });
 

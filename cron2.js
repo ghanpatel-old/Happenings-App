@@ -5,4 +5,4 @@ var db = mongoose.connect('mongodb://heroku:1111@staff.mongohq.com:10010/app2729
 
 var api = require('./controllers/api.js');
 
-api.fillCategories();
+api.fillDataTwo();

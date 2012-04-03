@@ -25,7 +25,8 @@ var Venue = new Schema({
 	neighborhood_id : String, 
 	neighborhood_name: String,
 	borough_name	: String,
-	cat_id			: String
+	cat_id			: String,
+	wear			: String
 	
 });
 

@@ -24,7 +24,7 @@ exports.blank = function(req,res){
 // ======= USER LOGIN ======== //
 
 exports.setLogin = function (req,res) {
-		var submit = { "value" : "" };
+		var submit = { "value" : "", "email": ""};
 			
 		req.session.user = req.body.token;
 		
@@ -52,7 +52,7 @@ exports.setLogin = function (req,res) {
 					res.end(JSON.stringify(submit));
 				});	
 			} else { //found record
-				submit.value = "already";
+				submit.email = docs.mail;
 				console.log(submit);
 				res.writeHead(200, {'Content-Type': 'application/javascript'});
 				res.end(JSON.stringify(submit));
@@ -62,7 +62,7 @@ exports.setLogin = function (req,res) {
 
 //get(/login/)
 exports.sendLogin = function (req,res) {
-	var submit = {"token" : req.session.user};
+	var submit = {"token" : req.session.user, "email": ""};
    	res.writeHead(200, {'Content-Type': 'application/javascript'});
 	res.end(JSON.stringify(submit));
    }
@@ -183,14 +183,7 @@ exports.getEvent = function(req,res){
 			res.end(JSON.stringify(JSONevent));
 		});
 	});
-	
-	/*
-	Event.findOne({_id: req.params.id}, function(err, doc){
-		JSONuserList = doc;
-		res.writeHead(200, {'Content-Type': 'application/javascript'});
-		res.end(JSON.stringify(JSONuserList));
-	});
-	*/
+
 }
 
 //post('/event/:id?=:tag')
@@ -295,6 +288,60 @@ exports.setFave = function(req,res) {
 	});
 }
 
+// ============ VENUE HANDLERS ============ //
+
+// get /venue/
+exports.venuesAll = function(req,res){
+	var JSONuserList = {'elements':[]};
+	
+	Venue.find({}, function(err,docs){
+		if(!err) {
+			docs.forEach(function(element, index, array){
+				JSONuserList.elements[index] = element;
+			});
+		}
+		console.log('sent venues');
+		res.writeHead(200, {'Content-Type': 'application/javascript'});
+		res.end(JSON.stringify(JSONuserList));
+	});
+}
+
+// get /venue/:id
+exports.getVenue = function(req,res){
+	var JSONevent = {'elements': '', 'sessuser': ''};
+	
+	Venue.findOne({venue_id : req.params.id}, function(err,doc){
+		if (err){
+			console.log(err);
+		} else {
+		JSONevent.elements = doc;
+		
+		//add session user's email to the JSON feed. Used by Fave button.	
+		User.findOne({ 'fbtoken': req.session.user }, function (err, sessuser) {
+			console.log(sessuser);
+			if(err){
+				console.log("err on find()");
+			}
+			if(sessuser != null){ //found it
+				JSONevent.sessuser = sessuser;
+			}
+			
+			console.log(JSONevent);
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.end(JSON.stringify(JSONevent));
+		});
+		}
+	});
+}
+
+// post /venue/:id
+exports.setVenueInfo = function(req,res){
+	
+}
+
+
+
+
 // ============ SMS HANDLERS ============ //
 
 
@@ -390,21 +437,100 @@ exports.fillData = function() {
 			console.log("checking organization: "+ element.org_id);
 			addToOrg(element);
 		});
-		
-		//wait 20 seconds, give timer...
-		var date = new Date();
-		var curDate = null;
-
-		do { 
-			curDate = new Date(); 
-			//console.log(curDate-date);
-		} 
-		while(curDate-date < 1000);
-		
-		//fill category info
-		
 	  }
 	});
+}
+
+exports.fillDataTwo = function() {
+	console.log("fillDataTwo launch");
+	request('http://173.203.29.228:8227/fo.php/iphone/wnetfeed', function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+		var jsonObj = JSON.parse(body);
+	
+		//fill event times
+		jsonObj.eventoccurences.forEach(function(element, index, array){
+			Event.findOne({ 'id' : element.id.toString() }, function (err, doc){
+				if(err){
+					console.log("Error: " + err);
+				}
+				if(doc == null){
+					console.log("Event doesn't exist for eventoccurence ");
+				} else {
+					if(!doc.event_time || doc.event_time == null){
+						doc.event_time = element.start.toString();
+						console.log(doc.event_time);
+						doc.save(function (err) {
+							if (!err) {
+								console.log('Success!');
+							} else {
+								console.log('Save Failed.');
+							}
+						});
+					} else {
+						console.log("time already filled for " + doc.id);
+					}
+				}
+			});
+		});
+		
+		//fill cat_ids
+		jsonObj.eventcategories.forEach(function(element, index, array){
+			Event.findOne({ 'id' : element.ev_id.toString() }, function (err, doc){
+				if(err){
+					console.log("Error: " + err);
+				}
+				if(doc == null){
+					console.log("Event doesn't exist for event-category ");
+				} else {
+					if(!doc.cat_id || doc.cat_id == null){
+						doc.cat_id = element.cat_id.toString();
+						console.log(doc.cat_id);
+						doc.save(function (err) {
+							if (!err) {
+								console.log('Success!');
+							} else {
+								console.log('Save Failed.');
+							}
+						});
+					} else {
+						console.log("category already filled for " + doc.id);
+					}
+				}
+			});
+		});
+	  }
+	});
+}
+
+exports.fillDataThree = function() {
+	console.log("fillDataThree launch");
+	
+	//add cat info to all
+	Event.find({},function(err,all){
+		all.forEach(function(element,index,array){
+			if(!element.cat_id || element.cat_id == null){
+				console.log("no cat_id for event " + element.id);
+			} else {
+				Category.findOne({"id" : element.cat_id}, function(err,doc){
+					if(err){
+						console.log("Error: " + err);
+					}
+					if(doc == null){
+						console.log("Category id doesn't exist in category table");
+					} else {
+						element.category = doc.name.toString();
+						element.save(function (err) {
+							if (!err) {
+								console.log('Success!');
+							} else {
+								console.log('Save Failed.');
+							}
+						});
+					}
+				});
+			}
+		});
+	});	  
 }
 
 function addToEvents(element) {
@@ -635,15 +761,13 @@ exports.fillCategories = function() {
 			console.log("id: " + element.id);
 			var instance = new Category();
 			instance.id = element.id.toString();
-
-/*			instance.name = element.name;
+			instance.name = element.name;
 			instance.description = element.description;
 		 	instance.for_orgs = element.for_orgs;
 			instance.for_venues = element.for_venues;
 			instance.for_events = element.for_events;
 			instance.is_featured = element.is_featured;
 			instance.parent_category_id = element.parent_category_id;
-*/
 			console.log("about to save id " + instance.id);
 			instance.save(function (err) {
 				if (!err) {
