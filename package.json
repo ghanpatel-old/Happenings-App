@@ -5,10 +5,10 @@
 	"mongoose": "2.x.x",
 	"express": "2.x.x",
 	"hooks": "0.1.9",
-	"mongodb": "0.9.7-3-5",
+	"mongodb": "0.x.x",
     "request": "2.x.x",
     "sesh": "0.1.0",
-    "async" : "0.1.x"
+    "async" : "0.x.x"
   } ,
   "main": "./index.js"
 }
